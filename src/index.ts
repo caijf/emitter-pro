@@ -11,18 +11,26 @@ class EmitterPro<F extends Listener = Listener> {
   listeners(eventName: string) {
     return this.handler[eventName] || [];
   }
+  hasListener(eventName: string, listener: F) {
+    return this.handler[eventName].some((item) => {
+      return item === listener;
+    });
+  }
   on(eventName: string, listener: F) {
     if (!this.handler[eventName]) {
       this.handler[eventName] = [listener];
     } else {
-      this.handler[eventName].push(listener);
+      // 不允许添加相同的方法
+      if (!this.hasListener(eventName, listener)) {
+        this.handler[eventName].push(listener);
+      }
     }
     return this;
   }
   off(eventName: string, listener?: F) {
     if (this.handler[eventName]) {
       if (typeof listener === 'function') {
-        this.handler[eventName] = this.handler[eventName].filter((item) => item === listener);
+        this.handler[eventName] = this.handler[eventName].filter((item) => item !== listener);
       } else {
         delete this.handler[eventName];
       }
