@@ -51,15 +51,9 @@ const emitter = new Emitter();
 // 注册监听方法
 emitter.on('foo', () => console.log('bar'));
 emitter.on('foo', () => console.log('baz'));
-```
 
-同一个事件名称，不能重复注册同一个方法。
-
-```typescript
-const emitter = new Emitter();
-
+// 同一个事件名称，不能重复注册同一个方法。
 const fn = () => console.log('test');
-
 emitter.on('test', fn);
 
 // 不能注册相同的方法，下面将不生效
