@@ -12,9 +12,7 @@ class EmitterPro<F extends Listener = Listener> {
     return this.handler[eventName] || [];
   }
   hasListener(eventName: string, listener: F) {
-    return this.handler[eventName].some((item) => {
-      return item === listener;
-    });
+    return this.listeners(eventName).some((item) => item === listener);
   }
   on(eventName: string, listener: F) {
     if (!this.handler[eventName]) {
