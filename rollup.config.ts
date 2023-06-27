@@ -30,8 +30,7 @@ const config: RollupOptions = {
       file: `${outputFilePrefix}.esm.js`,
       exports: 'default'
     }
-  ],
-  external: ['tslib']
+  ]
 };
 
 export default config;

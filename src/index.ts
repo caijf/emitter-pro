@@ -39,7 +39,8 @@ class EmitterPro<F extends Listener = Listener> {
     const listeners = this.listeners(eventName);
     if (listeners.length > 0) {
       listeners.forEach((listener) => {
-        listener(...args);
+        // eslint-disable-next-line prefer-spread
+        listener.apply(void 0, args);
       });
       return true;
     }
@@ -47,7 +48,8 @@ class EmitterPro<F extends Listener = Listener> {
   }
   once(eventName: string, listener: F) {
     const wrap = (...args: Parameters<F>) => {
-      listener(...args);
+      // eslint-disable-next-line prefer-spread
+      listener.apply(void 0, args);
       this.off(eventName, wrap as F);
     };
     return this.on(eventName, wrap as F);
