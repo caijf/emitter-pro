@@ -9,13 +9,15 @@
 ### 安装
 
 ```shell
+npm install emitter-pro
+```
+
+```shell
 yarn add emitter-pro
 ```
 
-or
-
 ```shell
-npm install emitter-pro
+pnpm add emitter-pro
 ```
 
 ### 示例
