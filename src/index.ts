@@ -1,62 +1,118 @@
 type Listener = (...args: any[]) => any;
 
+type EventName = string | symbol;
+type EventListener<F extends Listener = Listener> = { row: F; wrap: F; context: object | null };
+type Handler<F extends Listener = Listener> = [EventName, EventListener<F>[]];
+
 class EmitterPro<F extends Listener = Listener> {
-  private handler: Record<string, F[]>;
+  private handlers: Handler<F>[];
   constructor() {
-    this.handler = {};
+    this.handlers = [];
   }
+
+  private _get(eventName: EventName) {
+    return this.handlers.find((item) => item[0] === eventName);
+  }
+
   eventNames() {
-    return Object.keys(this.handler);
+    return this.handlers.map((item) => item[0]);
   }
-  listeners(eventName: string) {
-    return this.handler[eventName] || [];
+
+  rowListeners(eventName: EventName) {
+    const handler = this._get(eventName);
+    return handler ? handler[1].map((item) => item.row) : [];
   }
-  hasListener(eventName: string, listener: F) {
+
+  listeners(eventName: EventName) {
+    const handler = this._get(eventName);
+    return handler ? handler[1].map((item) => item.wrap) : [];
+  }
+
+  hasListener(eventName: EventName, listener: F) {
     return this.listeners(eventName).some((item) => item === listener);
   }
-  on(eventName: string, listener: F) {
-    if (!this.handler[eventName]) {
-      this.handler[eventName] = [listener];
+
+  private _on(
+    eventName: EventName,
+    row: F,
+    wrap: F,
+    context: EventListener['context'] = null,
+    dir = 1
+  ) {
+    const handler = this._get(eventName);
+    const currentListener = { row, wrap, context };
+    const appendMethod = dir === 1 ? 'push' : 'unshift';
+
+    if (!handler) {
+      this.handlers[appendMethod]([eventName, [currentListener]]);
     } else {
-      // 不允许添加相同的方法
-      if (!this.hasListener(eventName, listener)) {
-        this.handler[eventName].push(listener);
-      }
+      handler[1][appendMethod](currentListener);
     }
+
     return this;
   }
-  off(eventName: string, listener?: F) {
-    if (this.handler[eventName]) {
-      if (typeof listener === 'function') {
-        this.handler[eventName] = this.handler[eventName].filter((item) => item !== listener);
+
+  prependListener(eventName: EventName, listener: F, context?: EventListener['context']) {
+    return this._on(eventName, listener, listener, context, 0);
+  }
+
+  on(eventName: EventName, listener: F, context?: EventListener['context']) {
+    return this._on(eventName, listener, listener, context);
+  }
+
+  private _wrapOnce(eventName: EventName, listener: F, context: EventListener['context'] = null) {
+    const wrap = ((...args: Parameters<F>) => {
+      listener.apply(context, args);
+      this.off(eventName, wrap);
+    }) as F;
+    return wrap;
+  }
+
+  once(eventName: EventName, listener: F, context?: EventListener['context']) {
+    const wrap = this._wrapOnce(eventName, listener, context);
+    return this._on(eventName, listener, wrap, context);
+  }
+
+  prependOnceListener(eventName: EventName, listener: F, context?: EventListener['context']) {
+    const wrap = this._wrapOnce(eventName, listener, context);
+    return this._on(eventName, listener, wrap, context, 0);
+  }
+
+  off(eventName: EventName, listener?: F) {
+    const handler = this._get(eventName);
+
+    if (handler) {
+      if (listener) {
+        const index = handler[1].findIndex(
+          (item) => item.wrap === listener || item.row === listener
+        );
+        if (index !== -1) {
+          handler[1].splice(index, 1);
+        }
       } else {
-        delete this.handler[eventName];
+        const index = this.handlers.findIndex((item) => item[0] === eventName);
+        if (index !== -1) {
+          this.handlers.splice(index, 1);
+        }
       }
     }
     return this;
   }
-  emit(eventName: string, ...args: Parameters<F>) {
-    const listeners = this.listeners(eventName);
-    if (listeners.length > 0) {
-      listeners.forEach((listener) => {
-        // eslint-disable-next-line prefer-spread
-        listener.apply(void 0, args);
+
+  offAll() {
+    this.handlers.length = 0;
+    return this;
+  }
+
+  emit(eventName: EventName, ...args: Parameters<F>) {
+    const handler = this._get(eventName);
+    if (handler && handler[1].length > 0) {
+      handler[1].forEach((listener) => {
+        listener.wrap.apply(listener.context, args);
       });
       return true;
     }
     return false;
-  }
-  once(eventName: string, listener: F) {
-    const wrap = (...args: Parameters<F>) => {
-      // eslint-disable-next-line prefer-spread
-      listener.apply(void 0, args);
-      this.off(eventName, wrap as F);
-    };
-    return this.on(eventName, wrap as F);
-  }
-  offAll() {
-    this.handler = {};
-    return this;
   }
 }
 

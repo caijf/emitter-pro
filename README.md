@@ -1,6 +1,6 @@
 # emitter-pro
 
-[![npm][npm]][npm-url] ![GitHub](https://img.shields.io/github/license/caijf/emitter-pro.svg)
+[![npm][npm]][npm-url] [![codecov](https://codecov.io/gh/caijf/emitter-pro/graph/badge.svg?token=PC2MBY6NQL)](https://codecov.io/gh/caijf/emitter-pro) ![GitHub](https://img.shields.io/github/license/caijf/emitter-pro.svg)
 
 一个简单的 Javascript 事件管理，支持浏览器端和 node 端。
 
@@ -41,9 +41,9 @@ emitter.off('foo');
 
 ## 实例方法
 
-### on(eventName: string, listener: F)
+### on(eventName: string|symbol, listener: F, context?: object | null)
 
-注册监听方法。
+注册监听方法。允许多次添加同一引用的函数。
 
 返回当前实例。
 
@@ -54,15 +54,12 @@ const emitter = new Emitter();
 emitter.on('foo', () => console.log('bar'));
 emitter.on('foo', () => console.log('baz'));
 
-// 同一个事件名称，不能重复注册同一个方法。
-const fn = () => console.log('test');
-emitter.on('test', fn);
-
-// 不能注册相同的方法，下面将不生效
-emitter.on('test', fn);
+emitter.emit('foo');
+// bar
+// baz
 ```
 
-### emit(eventName: string, ...args: Parameters<F>)
+### emit(eventName: string|symbol, ...args: Parameters<F>)
 
 触发方法。
 
@@ -91,9 +88,9 @@ emitter.emit('test', 5, 5);
 // 25
 ```
 
-### off(eventName: string, listener?: F)
+### off(eventName: string|symbol, listener?: F)
 
-取消监听方法。如果不传第二个参数，将取消该事件名称的全部监听方法。
+取消监听方法。如果不传第二个参数，将取消该事件名称的全部监听方法。如果多次添加同一引用的函数，需要多次删除才行。
 
 返回当前实例。
 
@@ -120,11 +117,26 @@ emitter.off('foo'); // 取消 foo 全部监听方法
 emitter.emit('foo');
 ```
 
-### once(eventName: string, listener: F)
+### once(eventName: string|symbol, listener: F, context?: object | null)
 
 仅触发一次的监听方法。使用方法同 `on` 。
 
 返回当前实例。
+
+```typescript
+const emitter = new Emitter();
+
+// 注册监听方法
+emitter.on('foo', () => console.log('bar'));
+emitter.once('foo', () => console.log('baz'));
+
+emitter.emit('foo');
+// bar
+// baz
+
+emitter.emit('foo');
+// bar
+```
 
 ### offAll()
 
@@ -165,9 +177,9 @@ emitter.on('other', fn);
 console.log(emitter.eventNames()); // ["test", "other"]
 ```
 
-### listeners(eventName: string)
+### listeners(eventName: string|symbol)
 
-获取事件名称的全部监听方法。
+获取事件名称的全部监听方法（如通过 `once` 方法注册，返回的是包装方法）。
 
 返回事监听方法数组。
 
@@ -177,9 +189,65 @@ const emitter = new Emitter();
 const fn1 = () => console.log('bar');
 const fn2 = () => console.log('baz');
 emitter.on('test', fn1);
-emitter.on('test', fn2);
+emitter.once('test', fn2);
+
+console.log(emitter.listeners('test')); // [fn1, wrapFn2]
+```
+
+### rowListeners(eventName: string|symbol)
+
+获取事件名称的全部监听方法（原始方法，未经过包装处理）。
+
+返回事监听方法数组。
+
+```typescript
+const emitter = new Emitter();
+
+const fn1 = () => console.log('bar');
+const fn2 = () => console.log('baz');
+emitter.on('test', fn1);
+emitter.once('test', fn2);
 
 console.log(emitter.listeners('test')); // [fn1, fn2]
+```
+
+### prependListener(eventName: string|symbol, listener: F, context?: object | null)
+
+注册监听方法。同 `on` 方法，只是添加到前面（事件触发是按添加顺序执行）。
+
+返回当前实例。
+
+```typescript
+const emitter = new Emitter();
+
+// 注册监听方法
+emitter.on('foo', () => console.log('bar'));
+emitter.prependListener('foo', () => console.log('baz'));
+
+emitter.emit('foo');
+// baz
+// bar
+```
+
+### prependOnceListener(eventName: string|symbol, listener: F, context?: object | null)
+
+仅触发一次的监听方法。同 `once` 方法，只是添加到前面（事件触发是按添加顺序执行）。
+
+返回当前实例。
+
+```typescript
+const emitter = new Emitter();
+
+// 注册监听方法
+emitter.on('foo', () => console.log('bar'));
+emitter.prependOnceListener('foo', () => console.log('baz'));
+
+emitter.emit('foo');
+// baz
+// bar
+
+emitter.emit('foo');
+// bar
 ```
 
 [npm]: https://img.shields.io/npm/v/emitter-pro.svg

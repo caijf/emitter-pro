@@ -21,9 +21,30 @@ describe('emitter-pro', () => {
     emitter.off('test', fn);
     emitter.emit('test');
     expect(fn).toHaveBeenCalledTimes(2);
+
+    emitter.once('test', fn);
+    emitter.off('test', fn);
+    emitter.emit('test');
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('不允许添加相同的方法', () => {
+  it('区分on和once注册的方法', () => {
+    const on_fn = jest.fn();
+    const once_fn = jest.fn();
+    const emitter = new Emitter();
+    emitter.on('test', on_fn);
+    emitter.once('test', once_fn);
+
+    emitter.emit('test');
+    expect(on_fn).toHaveBeenCalledTimes(1);
+    expect(once_fn).toHaveBeenCalledTimes(1);
+
+    emitter.emit('test');
+    expect(on_fn).toHaveBeenCalledTimes(2);
+    expect(once_fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('允许多次添加相同的方法', () => {
     const emitter = new Emitter();
     const fn = jest.fn();
     emitter.on('test', fn);
@@ -31,10 +52,25 @@ describe('emitter-pro', () => {
     emitter.on('test', fn);
     expect(emitter.hasListener('test', fn)).toEqual(true);
     expect(emitter.hasListener('test', jest.fn())).toEqual(false);
-    expect(emitter.listeners('test').length).toEqual(1);
+    expect(emitter.listeners('test').length).toEqual(3);
 
     emitter.emit('test');
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledTimes(3);
+
+    emitter.off('test', fn);
+    emitter.emit('test');
+    expect(fn).toHaveBeenCalledTimes(5);
+  });
+
+  it('事件名称使用symbol类型', () => {
+    const sym1 = Symbol('a');
+    const sym2 = Symbol('a');
+    const fn = jest.fn();
+    const emitter = new Emitter();
+    emitter.on(sym1, fn);
+    emitter.on(sym2, fn);
+
+    expect(emitter.eventNames()).toEqual([sym1, sym2]);
   });
 
   it('链式调用和取消监听', () => {
@@ -117,5 +153,84 @@ describe('emitter-pro', () => {
     emitter.emit('test', 10, 10);
     expect(sum).toEqual(20);
     expect(square).toEqual(10); // once
+  });
+
+  it('自定义执行上下文', () => {
+    let count = 0;
+    const obj1 = {
+      o: 1
+    };
+    const obj2 = {
+      o: 2
+    };
+    const obj3 = {
+      o: 3
+    };
+    function fn() {
+      // @ts-expect-error
+      count += this.o;
+    }
+
+    const emitter = new Emitter();
+    emitter.on('addOne', fn, obj1);
+    emitter.on('addTwo', fn, obj2);
+    emitter.once('addThree', fn, obj3);
+
+    emitter.emit('addOne');
+    expect(count).toBe(1);
+
+    emitter.emit('addTwo');
+    expect(count).toBe(3);
+
+    emitter.emit('addThree');
+    expect(count).toBe(6);
+
+    emitter.emit('addTwo');
+    expect(count).toBe(8);
+
+    emitter.emit('addThree');
+    expect(count).toBe(8);
+  });
+
+  it('once 的 listeners 和 rowListeners', () => {
+    const fn = jest.fn();
+    const emitter = new Emitter();
+    emitter.once('test', fn);
+
+    const listeners = emitter.listeners('test');
+    expect(listeners[0]).not.toBe(fn);
+
+    const rowListeners = emitter.rowListeners('test');
+    expect(rowListeners[0]).toBe(fn);
+
+    emitter.off('test', fn);
+    expect(emitter.listeners('test').length).toEqual(0);
+    expect(emitter.rowListeners('test').length).toEqual(0);
+    expect(emitter.hasListener('test', fn)).toBe(false);
+    expect(emitter.eventNames().length).toBe(1);
+
+    emitter.offAll();
+    expect(emitter.listeners('test').length).toEqual(0);
+    expect(emitter.rowListeners('test').length).toEqual(0);
+    expect(emitter.hasListener('test', fn)).toBe(false);
+    expect(emitter.eventNames().length).toBe(0);
+  });
+
+  it('prependListener & prependOnceListener', () => {
+    const emitter = new Emitter();
+    const on_fn = jest.fn();
+    const once_fn = jest.fn();
+    const prepend_fn = jest.fn();
+    const prepend_once_fn = jest.fn();
+
+    emitter.on('test', on_fn);
+    emitter.once('test', once_fn);
+    emitter.prependListener('test', prepend_fn);
+    emitter.prependOnceListener('test', prepend_once_fn);
+
+    expect(emitter.rowListeners('test')).toEqual([prepend_once_fn, prepend_fn, on_fn, once_fn]);
+
+    emitter.emit('test');
+    expect(emitter.rowListeners('test')).toEqual([prepend_fn, on_fn]);
   });
 });

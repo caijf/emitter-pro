@@ -45,8 +45,11 @@
   },
   "keywords": [
     "event",
+    "emitter",
     "eventEmitter",
-    "listener"
+    "listener",
+    "observer",
+    "subscribe"
   ],
   "author": "caijf",
   "license": "MIT",
