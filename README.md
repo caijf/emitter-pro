@@ -194,7 +194,7 @@ emitter.once('test', fn2);
 console.log(emitter.listeners('test')); // [fn1, wrapFn2]
 ```
 
-### rowListeners(eventName: string|symbol)
+### rawListeners(eventName: string|symbol)
 
 获取事件名称的全部监听方法（原始方法，未经过包装处理）。
 
@@ -208,7 +208,7 @@ const fn2 = () => console.log('baz');
 emitter.on('test', fn1);
 emitter.once('test', fn2);
 
-console.log(emitter.listeners('test')); // [fn1, fn2]
+console.log(emitter.rawListeners('test')); // [fn1, fn2]
 ```
 
 ### prependListener(eventName: string|symbol, listener: F, context?: object | null)

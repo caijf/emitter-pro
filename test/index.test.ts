@@ -192,7 +192,7 @@ describe('emitter-pro', () => {
     expect(count).toBe(8);
   });
 
-  it('once 的 listeners 和 rowListeners', () => {
+  it('once 的 listeners 和 rawListeners', () => {
     const fn = jest.fn();
     const emitter = new Emitter();
     emitter.once('test', fn);
@@ -200,18 +200,18 @@ describe('emitter-pro', () => {
     const listeners = emitter.listeners('test');
     expect(listeners[0]).not.toBe(fn);
 
-    const rowListeners = emitter.rowListeners('test');
-    expect(rowListeners[0]).toBe(fn);
+    const rawListeners = emitter.rawListeners('test');
+    expect(rawListeners[0]).toBe(fn);
 
     emitter.off('test', fn);
     expect(emitter.listeners('test').length).toEqual(0);
-    expect(emitter.rowListeners('test').length).toEqual(0);
+    expect(emitter.rawListeners('test').length).toEqual(0);
     expect(emitter.hasListener('test', fn)).toBe(false);
     expect(emitter.eventNames().length).toBe(1);
 
     emitter.offAll();
     expect(emitter.listeners('test').length).toEqual(0);
-    expect(emitter.rowListeners('test').length).toEqual(0);
+    expect(emitter.rawListeners('test').length).toEqual(0);
     expect(emitter.hasListener('test', fn)).toBe(false);
     expect(emitter.eventNames().length).toBe(0);
   });
@@ -228,9 +228,9 @@ describe('emitter-pro', () => {
     emitter.prependListener('test', prepend_fn);
     emitter.prependOnceListener('test', prepend_once_fn);
 
-    expect(emitter.rowListeners('test')).toEqual([prepend_once_fn, prepend_fn, on_fn, once_fn]);
+    expect(emitter.rawListeners('test')).toEqual([prepend_once_fn, prepend_fn, on_fn, once_fn]);
 
     emitter.emit('test');
-    expect(emitter.rowListeners('test')).toEqual([prepend_fn, on_fn]);
+    expect(emitter.rawListeners('test')).toEqual([prepend_fn, on_fn]);
   });
 });

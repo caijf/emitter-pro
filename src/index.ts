@@ -1,7 +1,7 @@
 type Listener = (...args: any[]) => any;
 
 type EventName = string | symbol;
-type EventListener<F extends Listener = Listener> = { row: F; wrap: F; context: object | null };
+type EventListener<F extends Listener = Listener> = { raw: F; wrap: F; context: object | null };
 type Handler<F extends Listener = Listener> = [EventName, EventListener<F>[]];
 
 class EmitterPro<F extends Listener = Listener> {
@@ -18,9 +18,9 @@ class EmitterPro<F extends Listener = Listener> {
     return this.handlers.map((item) => item[0]);
   }
 
-  rowListeners(eventName: EventName) {
+  rawListeners(eventName: EventName) {
     const handler = this._get(eventName);
-    return handler ? handler[1].map((item) => item.row) : [];
+    return handler ? handler[1].map((item) => item.raw) : [];
   }
 
   listeners(eventName: EventName) {
@@ -34,13 +34,13 @@ class EmitterPro<F extends Listener = Listener> {
 
   private _on(
     eventName: EventName,
-    row: F,
+    raw: F,
     wrap: F,
     context: EventListener['context'] = null,
     dir = 1
   ) {
     const handler = this._get(eventName);
-    const currentListener = { row, wrap, context };
+    const currentListener = { raw, wrap, context };
     const appendMethod = dir === 1 ? 'push' : 'unshift';
 
     if (!handler) {
@@ -84,7 +84,7 @@ class EmitterPro<F extends Listener = Listener> {
     if (handler) {
       if (listener) {
         const index = handler[1].findIndex(
-          (item) => item.wrap === listener || item.row === listener
+          (item) => item.wrap === listener || item.raw === listener
         );
         if (index !== -1) {
           handler[1].splice(index, 1);
