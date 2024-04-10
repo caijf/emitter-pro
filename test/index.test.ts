@@ -44,6 +44,24 @@ describe('emitter-pro', () => {
     expect(once_fn).toHaveBeenCalledTimes(1);
   });
 
+  it('如果on和once注册的是同一个函数，内部能准确注销对应的once的函数，不影响添加顺序', () => {
+    const fn1 = jest.fn();
+    const fn2 = jest.fn();
+    const emitter = new Emitter();
+
+    emitter.on('test', fn1);
+    emitter.on('test', fn1);
+    emitter.on('test', fn2);
+    emitter.once('test', fn1);
+    emitter.on('test', fn1);
+    emitter.once('test', fn2);
+
+    expect(emitter.rawListeners('test')).toEqual([fn1, fn1, fn2, fn1, fn1, fn2]);
+
+    emitter.emit('test');
+    expect(emitter.rawListeners('test')).toEqual([fn1, fn1, fn2, fn1]);
+  });
+
   it('允许多次添加相同的方法', () => {
     const emitter = new Emitter();
     const fn = jest.fn();
