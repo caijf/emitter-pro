@@ -211,6 +211,29 @@ emitter.once('test', fn2);
 console.log(emitter.rawListeners('test')); // [fn1, fn2]
 ```
 
+### hasListener(eventName: string|symbol, listener: F)
+
+判断监听方法是否存在。
+
+内部使用 `rawListeners` 获取原始方法进行判断。
+
+```typescript
+const emitter = new Emitter();
+
+const fn1 = () => console.log('bar');
+const fn2 = () => console.log('baz');
+emitter.on('test', fn1);
+emitter.once('test', fn2);
+
+emitter.hasListener('test', fn1); // true
+emitter.hasListener('test', fn2); // true
+
+emitter.emit('test');
+
+emitter.hasListener('test', fn1); // true
+emitter.hasListener('test', fn2); // false
+```
+
 ### prependListener(eventName: string|symbol, listener: F, context?: object | null)
 
 注册监听方法。同 `on` 方法，只是添加到前面（事件触发是按添加顺序执行）。

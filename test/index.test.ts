@@ -62,6 +62,22 @@ describe('emitter-pro', () => {
     expect(emitter.rawListeners('test')).toEqual([fn1, fn1, fn2, fn1]);
   });
 
+  it('判断是否存在监听方法', () => {
+    const emitter = new Emitter();
+    const fn1 = jest.fn();
+    const fn2 = jest.fn();
+    emitter.on('test', fn1);
+    emitter.once('test', fn2);
+
+    expect(emitter.hasListener('test', fn1)).toBe(true);
+    expect(emitter.hasListener('test', fn2)).toBe(true);
+
+    emitter.emit('test');
+
+    expect(emitter.hasListener('test', fn1)).toBe(true);
+    expect(emitter.hasListener('test', fn2)).toBe(false);
+  });
+
   it('允许多次添加相同的方法', () => {
     const emitter = new Emitter();
     const fn = jest.fn();

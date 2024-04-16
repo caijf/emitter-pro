@@ -2,34 +2,32 @@ type Listener = (...args: any[]) => any;
 
 type EventName = string | symbol;
 type EventListener<F extends Listener = Listener> = { raw: F; wrap: F; context: object | null };
-type Handler<F extends Listener = Listener> = [EventName, EventListener<F>[]];
+type Handler<F extends Listener = Listener> = Record<EventName, EventListener<F>[]>;
 
 class EmitterPro<F extends Listener = Listener> {
-  private handlers: Handler<F>[];
+  private handlers: Handler<F>;
   constructor() {
-    this.handlers = [];
-  }
-
-  private _get(eventName: EventName) {
-    return this.handlers.find((item) => item[0] === eventName);
+    this.handlers = {};
   }
 
   eventNames() {
-    return this.handlers.map((item) => item[0]);
+    const symbols = Object.getOwnPropertySymbols?.(this.handlers) || [];
+    const keys = Object.keys(this.handlers) as (string | symbol)[];
+    return keys.concat(symbols);
   }
 
   rawListeners(eventName: EventName) {
-    const handler = this._get(eventName);
-    return handler ? handler[1].map((item) => item.raw) : [];
+    const handler = this.handlers[eventName];
+    return handler ? handler.map((item) => item.raw) : [];
   }
 
   listeners(eventName: EventName) {
-    const handler = this._get(eventName);
-    return handler ? handler[1].map((item) => item.wrap) : [];
+    const handler = this.handlers[eventName];
+    return handler ? handler.map((item) => item.wrap) : [];
   }
 
   hasListener(eventName: EventName, listener: F) {
-    return this.listeners(eventName).some((item) => item === listener);
+    return this.rawListeners(eventName).some((item) => item === listener);
   }
 
   private _on(
@@ -39,14 +37,13 @@ class EmitterPro<F extends Listener = Listener> {
     context: EventListener['context'] = null,
     dir = 1
   ) {
-    const handler = this._get(eventName);
     const currentListener = { raw, wrap, context };
-    const appendMethod = dir === 1 ? 'push' : 'unshift';
 
-    if (!handler) {
-      this.handlers[appendMethod]([eventName, [currentListener]]);
+    if (!this.handlers[eventName]) {
+      this.handlers[eventName] = [currentListener];
     } else {
-      handler[1][appendMethod](currentListener);
+      const appendMethod = dir === 1 ? 'push' : 'unshift';
+      this.handlers[eventName][appendMethod](currentListener);
     }
 
     return this;
@@ -79,35 +76,30 @@ class EmitterPro<F extends Listener = Listener> {
   }
 
   off(eventName: EventName, listener?: F) {
-    const handler = this._get(eventName);
+    const handler = this.handlers[eventName];
 
     if (handler) {
       if (listener) {
-        const index = handler[1].findIndex(
-          (item) => item.wrap === listener || item.raw === listener
-        );
+        const index = handler.findIndex((item) => item.wrap === listener || item.raw === listener);
         if (index !== -1) {
-          handler[1].splice(index, 1);
+          handler.splice(index, 1);
         }
       } else {
-        const index = this.handlers.findIndex((item) => item[0] === eventName);
-        if (index !== -1) {
-          this.handlers.splice(index, 1);
-        }
+        delete this.handlers[eventName];
       }
     }
     return this;
   }
 
   offAll() {
-    this.handlers.length = 0;
+    this.handlers = {};
     return this;
   }
 
   emit(eventName: EventName, ...args: Parameters<F>) {
-    const handler = this._get(eventName);
-    if (handler && handler[1].length > 0) {
-      handler[1].forEach((listener) => {
+    const handler = this.handlers[eventName];
+    if (handler && handler.length > 0) {
+      handler.forEach((listener) => {
         listener.wrap.apply(listener.context, args);
       });
       return true;
