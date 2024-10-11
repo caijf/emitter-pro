@@ -52,16 +52,16 @@ const emitter = new Emitter();
 
 // 注册监听方法
 emitter.on('foo', () => console.log('bar'));
-emitter.on('foo', () => console.log('baz'));
+emitter.on('foo', () => console.log(42));
 
 emitter.emit('foo');
 // bar
-// baz
+// 42
 ```
 
 ### emit(eventName: string|symbol, ...args: Parameters<F>)
 
-触发方法。
+触发监听方法。
 
 返回当前实例。
 
@@ -69,11 +69,11 @@ emitter.emit('foo');
 const emitter = new Emitter();
 
 emitter.on('foo', () => console.log('bar'));
-emitter.on('foo', () => console.log('baz'));
+emitter.on('foo', () => console.log(42));
 
 emitter.emit('foo');
 // bar
-// baz
+// 42
 
 // 支持传入参数
 emitter.on('test' (a, b) => console.log(a + b));
@@ -90,7 +90,7 @@ emitter.emit('test', 5, 5);
 
 ### off(eventName: string|symbol, listener?: F)
 
-取消监听方法。如果不传第二个参数，将取消该事件名称的全部监听方法。如果多次添加同一引用的函数，需要多次删除才行。
+取消监听方法。如果不传第二个参数，将取消该事件名称的全部监听方法。如果多次添加同一引用的函数，需要多次删除。
 
 返回当前实例。
 
@@ -108,13 +108,13 @@ emitter.emit('foo');
 // baz
 // 42
 
-emitter.off('foo', fn);
+emitter.off('foo', fn); // 取消 foo 的监听方法 fn
 emitter.emit('foo');
 // bar
 // 42
 
-emitter.off('foo'); // 取消 foo 全部监听方法
-emitter.emit('foo');
+emitter.off('foo'); // 取消 foo 的全部监听方法
+emitter.emit('foo'); // 什么都没发生
 ```
 
 ### once(eventName: string|symbol, listener: F, context?: object | null)
@@ -128,11 +128,11 @@ const emitter = new Emitter();
 
 // 注册监听方法
 emitter.on('foo', () => console.log('bar'));
-emitter.once('foo', () => console.log('baz'));
+emitter.once('foo', () => console.log(42));
 
 emitter.emit('foo');
 // bar
-// baz
+// 42
 
 emitter.emit('foo');
 // bar
@@ -198,7 +198,7 @@ console.log(emitter.listeners('test')); // [fn1, wrapFn2]
 
 获取事件名称的全部监听方法（原始方法，未经过包装处理）。
 
-返回事监听方法数组。
+返回对应事件名称的监听方法数组。
 
 ```typescript
 const emitter = new Emitter();
@@ -236,7 +236,7 @@ emitter.hasListener('test', fn2); // false
 
 ### prependListener(eventName: string|symbol, listener: F, context?: object | null)
 
-注册监听方法。同 `on` 方法，只是添加到前面（事件触发是按添加顺序执行）。
+注册监听方法。同 `on` 方法，只是将监听方法添加到最前面（事件触发是按顺序执行）。
 
 返回当前实例。
 
@@ -245,16 +245,16 @@ const emitter = new Emitter();
 
 // 注册监听方法
 emitter.on('foo', () => console.log('bar'));
-emitter.prependListener('foo', () => console.log('baz'));
+emitter.prependListener('foo', () => console.log(42));
 
 emitter.emit('foo');
-// baz
+// 42
 // bar
 ```
 
 ### prependOnceListener(eventName: string|symbol, listener: F, context?: object | null)
 
-仅触发一次的监听方法。同 `once` 方法，只是添加到前面（事件触发是按添加顺序执行）。
+仅触发一次的监听方法。同 `once` 方法，只是添加到最前面（事件触发是按顺序执行）。
 
 返回当前实例。
 
@@ -263,10 +263,10 @@ const emitter = new Emitter();
 
 // 注册监听方法
 emitter.on('foo', () => console.log('bar'));
-emitter.prependOnceListener('foo', () => console.log('baz'));
+emitter.prependOnceListener('foo', () => console.log(42));
 
 emitter.emit('foo');
-// baz
+// 42
 // bar
 
 emitter.emit('foo');
