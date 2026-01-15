@@ -22,6 +22,7 @@
   "main": "dist/emitter-pro.cjs.js",
   "module": "dist/emitter-pro.esm.js",
   "unpkg": "dist/emitter-pro.min.js",
+  "browser": "dist/emitter-pro.min.js",
   "types": "types/index.d.ts",
   "config": {
     "commitizen": {
