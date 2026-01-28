@@ -14,7 +14,8 @@ const commonConfig = {
     resolve(),
     commonjs(),
     typescript({
-      tsconfig: './tsconfig.build.json'
+      tsconfig: './tsconfig.build.json',
+      removeComments: true
     })
   ]
 };
