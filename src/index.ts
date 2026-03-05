@@ -82,7 +82,7 @@ class EmitterPro<F extends Listener = Listener> {
    * emitter.on('test', fn1);
    * emitter.once('test', fn2);
    *
-   * emitter.rawListeners('test'); // [fn1, wrapFn2]
+   * emitter.listeners('test'); // [fn1, wrapFn2]
    */
   listeners(eventName: EventName) {
     const handler = this.handlers[eventName];
@@ -120,6 +120,11 @@ class EmitterPro<F extends Listener = Listener> {
     raw: F,
     wrap: F,
     context: EventListener['context'] = null,
+    /**
+     * 事件触发时是否按顺序执行监听方法。
+     * - `1`：按注册顺序执行（默认）
+     * - `0`：按逆序执行
+     */
     dir = 1
   ) {
     const currentListener = { raw, wrap, context };
@@ -315,8 +320,8 @@ class EmitterPro<F extends Listener = Listener> {
    * // 42
    *
    * // 支持传入参数
-   * emitter.on('test' (a, b) => console.log(a + b));
-   * emitter.on('test' (a, b) => console.log(a * b));
+   * emitter.on('test', (a, b) => console.log(a + b));
+   * emitter.on('test', (a, b) => console.log(a * b));
    *
    * emitter.emit('other', 2, 5);
    * // 7

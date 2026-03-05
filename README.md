@@ -76,8 +76,8 @@ emitter.emit('foo');
 // 42
 
 // 支持传入参数
-emitter.on('test' (a, b) => console.log(a + b));
-emitter.on('test' (a, b) => console.log(a * b));
+emitter.on('test', (a, b) => console.log(a + b));
+emitter.on('test', (a, b) => console.log(a * b));
 
 emitter.emit('test', 2, 5);
 // 7
