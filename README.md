@@ -59,7 +59,7 @@ emitter.emit('foo');
 // 42
 ```
 
-### emit(eventName: string|symbol, ...args: Parameters<F>)
+### emit(eventName: string|symbol, ...args: Parameters\<F>)
 
 触发监听方法。
 
