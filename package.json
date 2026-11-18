@@ -13,7 +13,7 @@
     "prepublishOnly": "npm test && npm run build",
     "tsc": "tsc --noEmit",
     "commit": "cz",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "files": [
     "dist",
@@ -24,6 +24,17 @@
   "unpkg": "dist/emitter-pro.min.js",
   "browser": "dist/emitter-pro.min.js",
   "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "browser": "./dist/emitter-pro.min.js",
+      "import": "./dist/emitter-pro.esm.js",
+      "require": "./dist/emitter-pro.cjs.js",
+      "default": "./dist/emitter-pro.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "config": {
     "commitizen": {
       "path": "@commitlint/cz-commitlint"
