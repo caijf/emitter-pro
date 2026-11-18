@@ -241,7 +241,7 @@ describe('emitter-pro', () => {
     expect(emitter.listeners('test').length).toEqual(0);
     expect(emitter.rawListeners('test').length).toEqual(0);
     expect(emitter.hasListener('test', fn)).toBe(false);
-    expect(emitter.eventNames().length).toBe(1);
+    expect(emitter.eventNames().length).toBe(0);
 
     emitter.offAll();
     expect(emitter.listeners('test').length).toEqual(0);

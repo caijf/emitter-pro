@@ -268,6 +268,10 @@ class EmitterPro<F extends Listener = Listener> {
         const index = handler.findIndex((item) => item.wrap === listener || item.raw === listener);
         if (index !== -1) {
           handler.splice(index, 1);
+          // 监听方法清空后删除事件名称，避免 eventNames 残留空事件
+          if (handler.length === 0) {
+            delete this.handlers[eventName];
+          }
         }
       } else {
         delete this.handlers[eventName];
@@ -326,11 +330,11 @@ class EmitterPro<F extends Listener = Listener> {
    * emitter.on('test', (a, b) => console.log(a + b));
    * emitter.on('test', (a, b) => console.log(a * b));
    *
-   * emitter.emit('other', 2, 5);
+   * emitter.emit('test', 2, 5);
    * // 7
    * // 10
    *
-   * emitter.emit('other', 5, 5);
+   * emitter.emit('test', 5, 5);
    * // 10
    * // 25
    */
