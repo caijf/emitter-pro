@@ -4,7 +4,6 @@
     "lib": ["DOM", "ESNext"],
     "module": "ESNext",
     "moduleResolution": "node",
-    "importHelpers": true,
     "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

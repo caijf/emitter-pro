@@ -63,7 +63,9 @@ emitter.emit('foo');
 
 触发监听方法。
 
-返回当前实例。
+如果事件名称存在监听方法并成功触发返回 `true`，否则返回 `false`。
+
+> 注意：监听方法内部抛出错误会中断本次触发的剩余监听方法，并将错误抛出给 `emit` 调用方（与 Node.js EventEmitter 行为一致）。
 
 ```typescript
 const emitter = new Emitter();
@@ -76,8 +78,8 @@ emitter.emit('foo');
 // 42
 
 // 支持传入参数
-emitter.on('test' (a, b) => console.log(a + b));
-emitter.on('test' (a, b) => console.log(a * b));
+emitter.on('test', (a, b) => console.log(a + b));
+emitter.on('test', (a, b) => console.log(a * b));
 
 emitter.emit('test', 2, 5);
 // 7
