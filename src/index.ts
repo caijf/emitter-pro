@@ -179,8 +179,11 @@ class EmitterPro<F extends Listener = Listener> {
 
   private _wrapOnce(eventName: EventName, listener: F, context: EventListener['context'] = null) {
     const wrap = ((...args: Parameters<F>) => {
-      listener.apply(context, args);
-      this.off(eventName, wrap);
+      try {
+        listener.apply(context, args);
+      } finally {
+        this.off(eventName, wrap);
+      }
     }) as F;
     return wrap;
   }
@@ -334,7 +337,8 @@ class EmitterPro<F extends Listener = Listener> {
   emit(eventName: EventName, ...args: Parameters<F>) {
     const handler = this.handlers[eventName];
     if (handler && handler.length > 0) {
-      handler.forEach((listener) => {
+      // 快照遍历，避免监听器内部注销（如 once）导致后续监听器被跳过
+      handler.slice().forEach((listener) => {
         listener.wrap.apply(listener.context, args);
       });
       return true;
