@@ -266,5 +266,37 @@ describe('emitter-pro', () => {
 
     emitter.emit('test');
     expect(emitter.rawListeners('test')).toEqual([prepend_fn, on_fn]);
+    expect(prepend_fn).toHaveBeenCalledTimes(1);
+    expect(prepend_once_fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('emit 期间 once 自注销不应跳过相邻监听方法', () => {
+    const emitter = new Emitter();
+    const calls: string[] = [];
+    emitter.once('test', () => calls.push('A'));
+    emitter.on('test', () => calls.push('B'));
+    emitter.on('test', () => calls.push('C'));
+
+    expect(emitter.emit('test')).toBe(true);
+    expect(calls).toEqual(['A', 'B', 'C']);
+    expect(emitter.rawListeners('test').length).toBe(2);
+  });
+
+  it('once 监听方法抛错后应自动注销', () => {
+    const emitter = new Emitter();
+    const fn1 = jest.fn(() => {
+      throw new Error('boom');
+    });
+    const fn2 = jest.fn();
+    emitter.once('test', fn1);
+    emitter.once('test', fn2);
+
+    expect(() => emitter.emit('test')).toThrow('boom');
+    // 抛错的 once 监听方法已被注销，不会在后续 emit 中重复触发
+    expect(emitter.rawListeners('test')).toEqual([fn2]);
+
+    emitter.emit('test');
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledTimes(1);
   });
 });
