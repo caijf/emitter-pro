@@ -270,6 +270,21 @@ describe('emitter-pro', () => {
     expect(prepend_once_fn).toHaveBeenCalledTimes(1);
   });
 
+  it('off 注销未注册的监听方法不应影响已有监听', () => {
+    const emitter = new Emitter();
+    const fn1 = jest.fn();
+    const fn2 = jest.fn();
+    emitter.on('test', fn1);
+
+    emitter.off('test', fn2); // fn2 未注册，应无操作
+    expect(emitter.rawListeners('test')).toEqual([fn1]);
+    expect(emitter.eventNames()).toEqual(['test']);
+
+    emitter.emit('test');
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledTimes(0);
+  });
+
   it('emit 期间 once 自注销不应跳过相邻监听方法', () => {
     const emitter = new Emitter();
     const calls: string[] = [];
